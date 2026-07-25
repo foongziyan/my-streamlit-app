@@ -1,0 +1,36 @@
+import joblib
+import nltk
+from nltk.corpus import movie_reviews
+import random
+
+# Download datasets
+nltk.download('movie_reviews')
+
+# Load and shuffle movie review data
+documents = [
+    (list(movie_reviews.words(fileid)), category)
+    for category in movie_reviews.categories()
+    for fileid in movie_reviews.fileids(category)
+]
+random.seed(42)
+random.shuffle(documents)
+
+# Get top 2,000 frequent words
+all_words = nltk.FreqDist(w.lower() for w in movie_reviews.words())
+word_features = list(all_words)[:2000]
+
+# Feature extraction function
+def document_features(document):
+    doc_words = set(document)
+    return {word: (word in doc_words) for word in word_features}
+
+# Extract features and train classifier
+featuresets = [(document_features(d), c) for (d, c) in documents]
+classifier = nltk.NaiveBayesClassifier.train(featuresets)
+
+# SAVE THE MODEL FILE
+joblib.dump(classifier, 'bayes_classifier.joblib')
+print(
+    "Successfully created 'bayes_classifier.joblib' in your current working"
+    " directory!"
+)
